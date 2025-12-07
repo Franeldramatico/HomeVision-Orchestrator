@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+    <title>HomeVision Orchestrator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+            color: #ffffff;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            padding: 40px 60px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .time {
+            font-size: 36px;
+            opacity: 0.9;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+        }
+
+        /* Quick Scenes */
+        .scene-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .scene-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .scene-btn:hover,
+        .scene-btn:focus {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .scene-btn .icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+
+        .scene-btn .title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .scene-btn .description {
+            font-size: 20px;
+            opacity: 0.8;
+        }
+
+        /* Devices Grid */
+        .devices-section h2 {
+            font-size: 40px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+
+        .device-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .device-card:hover,
+        .device-card:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4CAF50;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .device-card.active {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+        }
+
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .device-icon {
+            font-size: 48px;
+        }
+
+        .device-status {
+            font-size: 18px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+        }
+
+        .device-status.offline {
+            background: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        .device-name {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .device-room {
+            font-size: 20px;
+            opacity: 0.7;
+        }
+
+        /* Notifications */
+        .notification-popup {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            max-width: 500px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(600px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .notification-icon {
+            font-size: 48px;
+        }
+
+        .notification-title {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .notification-message {
+            font-size: 22px;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>
+                <span>🏠</span>
+                <span>HomeVision Orchestrator</span>
+            </h1>
+            <div class="time" id="clock">00:00</div>
+        </div>
+
+        <div class="main-content">
+            <!-- Quick Scenes -->
+            <div class="scene-buttons" id="scenes">
+                <div class="loading">Cargando escenas...</div>
+            </div>
+
+            <!-- Devices -->
+            <div class="devices-section">
+                <h2>🔌 Dispositivos</h2>
+                <div class="devices-grid" id="devices">
+                    <div class="loading">Cargando dispositivos...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Popup (hidden by default) -->
+        <div id="notification" style="display: none;"></div>
+    </div>
+
+    <script src="src/App.jsx" type="module"></script>
+    <script>
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}`;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // API Configuration
+        const API_URL = 'http://192.168.1.100:5000/api'; // Change to your API Gateway IP
+        const WS_URL = 'ws://192.168.1.100:8080';
+
+        let ws = null;
+
+        // Fetch and display scenes
+        async function loadScenes() {
+            try {
+                const response = await fetch(`${API_URL}/scenes`);
+                const scenes = await response.json();
+                
+                const scenesContainer = document.getElementById('scenes');
+                scenesContainer.innerHTML = scenes.map(scene => `
+                    <div class="scene-btn" onclick="executeScene(${scene.Id})" tabindex="0">
+                        <div class="icon">${scene.Icon}</div>
+                        <div class="title">${scene.Name}</div>
+                        <div class="description">${scene.Description}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load scenes:', error);
+            }
+        }
+
+        // Fetch and display devices
+        async function loadDevices() {
+            try {
+                const response = await fetch(`${API_URL}/devices`);
+                const devices = await response.json();
+                
+                const devicesContainer = document.getElementById('devices');
+                devicesContainer.innerHTML = devices.map(device => `
+                    <div class="device-card ${device.Status.toLowerCase() === 'on' || device.Status.toLowerCase() === 'active' ? 'active' : ''}" 
+                         onclick="toggleDevice(${device.Id})" tabindex="0">
+                        <div class="device-header">
+                            <div class="device-icon">
+                                ${getDeviceIcon(device.Type)}
+                            </div>
+                            <div class="device-status ${device.Status.toLowerCase() === 'offline' ? 'offline' : ''}">
+                                ${device.Status}
+                            </div>
+                        </div>
+                        <div class="device-name">${device.Name}</div>
+                        <div class="device-room">${device.Room}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load devices:', error);
+            }
+        }
+
+        function getDeviceIcon(type) {
+            const icons = {
+                'Light': '💡',
+                'Thermostat': '🌡️',
+                'Camera': '📹',
+                'SmartPlug': '🔌',
+                'Lock': '🔒'
+            };
+            return icons[type] || '📱';
+        }
+
+        // Execute scene
+        async function executeScene(sceneId) {
+            try {
+                await fetch(`${API_URL}/scenes/${sceneId}/execute`, { method: 'POST' });
+                showNotification('✅', 'Escena Ejecutada', 'La escena se está ejecutando...');
+            } catch (error) {
+                console.error('Failed to execute scene:', error);
+                showNotification('❌', 'Error', 'No se pudo ejecutar la escena');
+            }
+        }
+
+        // Toggle device
+        async function toggleDevice(deviceId) {
+            try {
+                await fetch(`${API_URL}/devices/${deviceId}/control`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Action: 'toggle' })
+                });
+                loadDevices(); // Refresh
+            } catch (error) {
+                console.error('Failed to toggle device:', error);
+            }
+        }
+
+        // Show notification
+        function showNotification(icon, title, message, duration = 5000) {
+            const notificationEl = document.getElementById('notification');
+            notificationEl.innerHTML = `
+                <div class="notification-popup">
+                    <div class="notification-header">
+                        <div class="notification-icon">${icon}</div>
+                        <div class="notification-title">${title}</div>
+                    </div>
+                    <div class="notification-message">${message}</div>
+                </div>
+            `;
+            notificationEl.style.display = 'block';
+
+            setTimeout(() => {
+                notificationEl.style.display = 'none';
+            }, duration);
+        }
+
+        // WebSocket for real-time updates
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                console.log('✅ WebSocket connected');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'notification') {
+                    showNotification(data.icon || '🔔', data.title, data.message);
+                } else if (data.type === 'device-update') {
+                    loadDevices();
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected. Reconnecting...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            loadScenes();
+            loadDevices();
+            connectWebSocket();
+        });
+
+        // Tizen back button handler
+        window.addEventListener('tizenhwkey', (e) => {
+            if (e.keyName === 'back') {
+                try {
+                    tizen.application.getCurrentApplication().exit();
+                } catch (ignore) {}
+            }
+        });
+    </script>
+</body>
+</html>
